@@ -1,0 +1,115 @@
+
+# R Programming - Anomaly Detection 
+
+
+
+```{r}
+# Find the anomalies on the following given time series dataset. 
+# Loading our dataset
+
+# train <- read.csv('http://bit.ly/CarreFourSalesDataset") 
+
+
+```
+
+
+```{r}
+# Installing anomalize package
+
+install.packages("anomalize")
+install.packages('tidyquant')
+install.packages('ggpubr')
+```
+
+
+```{r}
+# load libraries
+
+library(tidyverse)
+library(anomalize)
+library(tidyverse)
+library(tidyquant)
+library(lubridate)
+library(ggplot2)
+library(ggpubr)
+library(anomalize)
+library(tibbletime)
+```
+
+
+```{r}
+# read in the data
+# Collect our time series data
+
+library(readr)
+df1 <- read_csv("~/RStudio/week 14 datasetsip/Supermarket_Sales_Forecasting - Sales.csv")
+View(df1)
+```
+
+
+```{r}
+# read in the data
+# Collect our time series data
+library("data.table") 
+df<- fread('http://bit.ly/CarreFourSalesDataset') 
+```
+
+
+```{r}
+### Taking a glimpse on some of the data in the dataframe
+
+glimpse(df)
+```
+
+
+```{r}
+### Changing time stamp to date time series
+### specify format m/d/Y H:M:S
+### convert the characters of date and time to  date time series
+
+df$Date <- as.Date(df$Date, format="%m/%d/%Y",tz=Sys.timezone())
+```
+
+
+```{r}
+### Taking a glimpse on some of the data in the dataframe after changing datatype
+
+glimpse(df)
+```
+
+
+```{r}
+### Taking a glimpse on some of the data in the dataframe
+
+head(df)
+View(df)
+```
+```{r}
+
+df <- as_tbl_time(df , index= Date)
+head(df)
+```
+
+
+```{r}
+all(length(unique(df1$Date))==length(df1$Date))
+```
+
+
+```{r}
+# Detecting our anomalies
+
+df %>%
+  group_by(Date) %>%
+  summarise(Orders = sum(Sales)) %>%
+  time_decompose(Orders) %>%
+  anomalize(remainder) %>%
+  time_recompose() %>%
+plot_anomalies()
+
+```
+
+
+
+From the analysis done the data has no anomaly making it good for modeling and recommending it to be considered for model creation
+

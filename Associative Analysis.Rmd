@@ -1,0 +1,168 @@
+
+# R Programming - Associative Analysis
+
+
+
+```{r}
+# We first we install the required arules library 
+
+install.packages("arules")
+```
+
+
+```{r}
+# Loading the arules library
+#
+library(arules)
+```
+
+
+
+
+```{r}
+# Loading our transactions dataset from our csv file
+
+Transactionss <- read.transactions("http://bit.ly/SupermarketDatasetII")
+View(Transactionss)
+```
+
+
+```{r}
+# Verifying the object's class type of data
+
+class(Transactionss)
+```
+
+
+```{r}
+
+# Previewing our first 5 transactions
+
+inspect(Transactionss[1:5])
+```
+
+
+```{r}
+# Previewing the items that make up our dataset
+
+items<-as.data.frame(itemLabels(Transactionss))
+colnames(items) <- "Item"
+head(items, 10)    
+```
+
+
+```{r}
+# Getting summary of the transaction dataset
+
+summary(Transactionss)
+```
+
+
+```{r}
+# Exploring the frequency of some parchased items
+
+itemFrequency(Transactionss[, 8:10],type = "absolute")
+round(itemFrequency(Transactionss[, 8:10],type = "relative")*100,2)
+```
+
+
+```{r}
+# Producing a chart of frequencies and fitering  items that has minimum percentage first ten
+# to consider only items with a minimum percentage 
+ 
+par(mfrow = c(1, 2))
+
+# plot the frequency of items
+itemFrequencyPlot(Transactionss, topN = 10,col="purple")
+itemFrequencyPlot(Transactionss, support = 0.1,col="darkblue")
+```
+from the graph above we can observe that tea has the highest frequency meaning it has a high sales with grated french being the lowest sales.
+
+```{r}
+#  Using apriori will building a model based on association rules 
+# With confidence as 0.8  and min Support as 0.001 
+ 
+rules <- apriori (Transactionss, parameter = list(supp = 0.001, conf = 0.8))
+rules
+
+```
+
+
+```{r}
+# We use measures of significance and interest on the rules, 
+# determining which ones are interesting and which to discard.
+# we will see what happens if we increase the support or lower the confidence level
+# 
+
+# Using apriori will building a model based on association rules  with Min Support as 0.002 and confidence as 0.8.
+rules2 <- apriori (Transactionss,parameter = list(supp = 0.002, conf = 0.8)) 
+
+# Using apriori will building a model based on association rules  with Min Support as 0.002 and confidence as 0.6.
+rules3 <- apriori (Transactionss, parameter = list(supp = 0.001, conf = 0.6)) 
+
+rules2
+
+rules3
+```
+In 15 counts and 7 counts we see that their is an increase from 99 to 319
+
+
+
+```{r}
+# Check the model summary
+
+summary(rules)
+```
+
+
+```{r}
+# Observing first 5 model rules  built in our model 
+# ---
+# 
+inspect(rules[1:5])
+
+```
+
+
+```{r}
+# Ordering these rules by a criteria such as the level of confidence
+# then looking at the first five rules.
+# We can also use different criteria such as: (by = "lift" or by = "support")
+# 
+rules<-sort(rules, by="confidence", decreasing=TRUE)
+inspect(rules[1:5])
+
+```
+
+
+```{r}
+# If we're interested in making a promotion relating to the sale of yogurt, 
+# we could create a subset of rules concerning these products 
+# ---
+# This would tell us the items that the customers bought before purchasing yogurt
+# ---
+# 
+wheat <- subset(rules, subset = rhs %pin% "wheat")
+ 
+# Then order by confidence
+wheat<-sort(wheat, by="confidence", decreasing=TRUE)
+inspect(wheat[1:5])
+```
+
+
+```{r}
+# What if we wanted to determine items that customers might buy 
+# who have previously bought yogurt?
+# ---
+# 
+# Subset the rules
+wheat <- subset(rules, subset = lhs %pin% "wheat")
+
+# Order by confidence
+wheat<-sort(wheat, by="confidence", decreasing=TRUE)
+
+# inspect top 5
+inspect(wheat[5:10])
+```
+the chances of one buying wheat to nine has a confidence of of 100% 
+In recommendation the first nine products should be a priority and sealer should priorities on those products.
