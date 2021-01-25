@@ -1,0 +1,140 @@
+
+# Feature Selection in Unsupervised Learning
+
+
+```{r}
+##Filter Methods 
+
+# Loading our Data
+
+path<-"http://bit.ly/CarreFourDataset" 
+
+Dataset<-read.csv(path, sep = ",", dec = ".",row.names = 1)
+Dataset<-Dataset[-4] 
+head(Dataset,3)
+
+```
+
+
+```{r}
+# Installing and loading our caret package
+
+suppressWarnings(
+        suppressMessages(if
+                         (!require(caret, quietly=TRUE))
+                install.packages("caret")))
+library(caret)
+
+```
+
+
+```{r}
+# Installing and loading the corrplot package for plotting
+
+suppressWarnings(
+        suppressMessages(if
+                         (!require(corrplot, quietly=TRUE))
+                install.packages("corrplot")))
+library(corrplot)
+
+```
+
+
+```{r}
+head(Dataset)
+```
+
+
+```{r}
+### Changing time stamp to date time series
+### specify format m/d/Y H:M:S
+### convert the characters of date and time to  date time series
+Dataset$Date<- as.Date(Dataset$Date, format="%m/%d/%Y",tz=Sys.timezone())
+```
+
+
+```{r}
+
+### Changing time stamp to date time series
+### specify format m/d/Y H:M:S
+### convert the characters of date and time to  date time series
+Dataset$Time <- as.POSIXct(Dataset$Time, format="%H:%M",tz=Sys.timezone())
+```
+
+
+
+```{r}
+install.packages("dplyr")
+library(dplyr)
+```
+
+```{r}
+# Encoding categorical variables
+Branch = data.frame(model.matrix(~0+Dataset$Branch))
+Customer.type = data.frame(model.matrix(~0+Dataset$Customer.type ))
+Gender = data.frame(model.matrix(~0+Dataset$Gender))
+Date = data.frame(model.matrix(~0+Dataset$Date))
+Time = data.frame(model.matrix(~0+Dataset$Time))
+Payment = data.frame(model.matrix(~0+Dataset$Payment))
+
+
+# Dropping columns which have already encoded
+drop_cols = c('Branch', 'Customer.type', 'Gender','Date','Time', 'Payment', 'Payment')
+Dataset = select(data.frame(cbind(Dataset, Branch, Customer.type, Gender, Date,	Time,Payment)), -drop_cols)
+
+```
+
+
+```{r}
+Dataset = select(Dataset, -gross.margin.percentage)
+```
+
+
+
+```{r}
+# Calculating the correlation matrix
+
+correlationMatrix <- cor(Dataset)
+correlationMatrix
+
+```
+
+
+
+```{r}
+# Find attributes that are highly correlated
+# ---
+#
+highlyCorrelated <- findCorrelation(correlationMatrix, cutoff=0.75)
+
+# Highly correlated attributes
+# ---
+# 
+highlyCorrelated
+
+names(Dataset[,highlyCorrelated])
+
+```
+
+
+```{r}
+# We can remove the variables with a higher correlation 
+# and comparing the results graphically as shown below
+# ---
+# 
+# Removing Redundant Features 
+# ---
+# 
+Dataset2<-Dataset[-highlyCorrelated]
+
+# Performing our graphical comparison
+# ---
+# 
+par(mfrow = c(1, 2))
+corrplot(correlationMatrix, order = "hclust")
+corrplot(cor(Dataset2), order = "hclust")
+
+```
+we can see customer type is the most important payment credit card being the least importance.
+
+
